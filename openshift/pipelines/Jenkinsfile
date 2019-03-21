@@ -5,17 +5,42 @@ pipeline {
         GIT_REPO="https://github.com/davidfireblade/mypythonproject.git"
     }
     stages {
-        stage('create') {
+        stage('Build') {
             steps {
                 script {
                     openshift.withCluster() {
                         openshift.withProject() {
-                            // create a new application from the templatePath
-                            openshift.newApp("https://github.com/davidfireblade/mypythonproject.git")
+                            def builds = openshift.selector("bc", ${APPLICATION_NAME}).related('builds')
+                            builds.untilEach(1) {
+                                return (it.object().status.phase == "Complete")
+                            }
                         }
                     }
                 } // script
-            } // steps
-        } // stage
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Testing..'
+                sh('''python --version;''')
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying....'
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject() {
+                            def rm = openshift.selector("dc", ${APPLICATION_NAME}).rollout()
+                            timeout(5) { 
+                                openshift.selector("dc", ${APPLICATION_NAME}).related('pods').untilEach(1) {
+                                    return (it.object().status.phase == "Running")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
