@@ -11,7 +11,7 @@ pipeline {
                     openshift.withCluster() {
                         openshift.withProject() {
                             // create a new application from the templatePath
-                            openshift.newApp(${GIT_REPO})
+                            openshift.newApp('redhat-openjdk18-openshift:1.1~https://github.com/davidfireblade/mypythonproject.git')
                         }
                     }
                 } // script
