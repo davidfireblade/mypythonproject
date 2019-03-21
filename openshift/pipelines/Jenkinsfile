@@ -2,21 +2,21 @@ pipeline {
     agent any
     
     stages {
-        stage('create') {
-            steps {
-                script {
-                    openshift.withCluster() {
-                        openshift.withProject() {
-                            // create a new application from the templatePath
-                            def create = openshift.newApp("https://github.com/davidfireblade/mypythonproject.git")
-                            create.untilEach(1) {
-                                return (it.object().status.phase == "Complete")
-                            }
-                        }
-                    }
-                } // script
-            } // steps
-        } // stage
+        // stage('create') {
+        //     steps {
+        //         script {
+        //             openshift.withCluster() {
+        //                 openshift.withProject() {
+        //                     // create a new application from the templatePath
+        //                     def create = openshift.newApp("https://github.com/davidfireblade/mypythonproject.git")
+        //                     create.untilEach(1) {
+        //                         return (it.object().status.phase == "Complete")
+        //                     }
+        //                 }
+        //             }
+        //         } // script
+        //     } // steps
+        // } // stage
         stage('Build') {
             steps {
                 script {
