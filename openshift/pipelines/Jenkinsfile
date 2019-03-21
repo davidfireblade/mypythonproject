@@ -10,7 +10,7 @@ pipeline {
                 script {
                     openshift.withCluster() {
                         openshift.withProject() {
-                            def builds = openshift.selector("bc", ${APPLICATION_NAME}).related('builds')
+                            def builds = openshift.selector("bc", 'mypythonproject').related('builds')
                             builds.untilEach(1) {
                                 return (it.object().status.phase == "Complete")
                             }
@@ -31,9 +31,9 @@ pipeline {
                 script {
                     openshift.withCluster() {
                         openshift.withProject() {
-                            def rm = openshift.selector("dc", ${APPLICATION_NAME}).rollout()
+                            def rm = openshift.selector("dc", 'mypythonproject').rollout()
                             timeout(5) { 
-                                openshift.selector("dc", ${APPLICATION_NAME}).related('pods').untilEach(1) {
+                                openshift.selector("dc", 'mypythonproject').related('pods').untilEach(1) {
                                     return (it.object().status.phase == "Running")
                                 }
                             }
