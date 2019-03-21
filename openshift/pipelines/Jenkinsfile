@@ -40,7 +40,18 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo 'Deploying....'
-                openshiftDeploy(deploymentConfig: '${APPLICATION_NAME}')
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject() {
+                            def rm = openshift.selector("dc", ${APPLICATION_NAME}).rollout()
+                            timeout(5) { 
+                                openshift.selector("dc", ${APPLICATION_NAME}).related('pods').untilEach(1) {
+                                    return (it.object().status.phase == "Running")
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
