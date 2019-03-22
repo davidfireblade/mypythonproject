@@ -1,58 +1,8 @@
-pipeline {
-    agent any
-    
-    stages {
-        stage('create') {
-            steps {
-                script {
-                    openshift.withCluster() {
-                        openshift.withProject() {
-                            // create a new application from the templatePath
-                            def create = openshift.newApp("https://github.com/davidfireblade/mypythonproject.git")
-                            create.untilEach(1) {
-                                return (it.object().status.phase == "Complete")
-                            }
-                        }
-                    }
-                } // script
-            } // steps
-        } // stage
-        stage('Build') {
-            steps {
-                script {
-                    openshift.withCluster() {
-                        openshift.withProject() {
-                            def builds = openshift.selector("bc", 'mypythonproject').related('builds')
-                            builds.untilEach(1) {
-                                return (it.object().status.phase == "Complete")
-                            }
-                        }
-                    }
-                } // script
-            }
-        }
-        stage('Test') {
-            steps {
-                echo 'Testing..'
-                sh('''python --version;''')
-            }
-        }
-        stage('Deploy') {
-            steps {
-                echo 'Deploying....'
-                script {
-                    openshift.withCluster() {
-                        openshift.withProject() {
-                            def rm = openshift.selector("dc", 'mypythonproject').rollout()
-                            timeout(5) { 
-                                openshift.selector("dc", 'mypythonproject').related('pods').untilEach(1) {
-                                    return (it.object().status.phase == "Running")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+node {
+    stage('build') {
+        openshiftBuild(buildConfig: 'mypythonproject', showBuildLogs: 'true')
+    }
+    stage('test') {
+        sh('''python --version;''')
     }
 }
