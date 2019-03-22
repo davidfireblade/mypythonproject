@@ -26,7 +26,7 @@ node {
                     assert resp.stdout.contains("Hello World!")              
                 } // pod selector
             } // withproject
-        } withcluster
+        } // withcluster
     } // stage
     stage('deploy') {  // TODO: confirm if this is valid
       openshiftDeploy(deploymentConfig: APPNAME)
