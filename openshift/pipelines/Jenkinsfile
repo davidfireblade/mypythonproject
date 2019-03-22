@@ -5,8 +5,29 @@ node {
         openshiftBuild(buildConfig: APPNAME, showBuildLogs: 'true')
     }
     stage('test') {
-        sh('''python --version;''')
-    }
+        openshift.withCluster() {
+            openshift.withProject() {
+      
+                /* Get the Deployment Config (DC) Object */
+                def dcObj = openshift.selector('dc', APPNAME).object()
+          
+                /* Use the DC to find the pods */
+                def podSelector = openshift.selector('pod', [deployment: "${APPNAME}-${dcObj.status.latestVersion}"])
+          
+                podSelector.withEach {
+                    // obtain the pod name and remove "pods/" from the front.
+                    def podName = it.name()  // probably pods/abcd1234
+                    podName = podName.replaceFirst("pods/", "")
+                    echo "Running unit tests against ${podName}"
+
+                    // Run a command on the container
+                    def resp = openshiftExec(pod: podName, command: ["/usr/bin/curl", "http://127.0.0.1:8080/"])
+
+                    assert resp.stdout.contains("Hello World!")              
+                } // pod selector
+            } // withproject
+        } withcluster
+    } // stage
     stage('deploy') {  // TODO: confirm if this is valid
       openshiftDeploy(deploymentConfig: APPNAME)
     }
