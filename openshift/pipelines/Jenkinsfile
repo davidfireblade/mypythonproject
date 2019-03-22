@@ -1,8 +1,15 @@
 node {
+    def APPNAME = "mypythonproject"
+
     stage('build') {
-        openshiftBuild(buildConfig: 'mypythonproject', showBuildLogs: 'true')
+        openshiftBuild(buildConfig: APPNAME, showBuildLogs: 'true')
     }
     stage('test') {
         sh('''python --version;''')
     }
+    stage('deploy') {  // TODO: confirm if this is valid
+      openshiftDeploy(deploymentConfig: APPNAME)
+    }
+
+
 }
